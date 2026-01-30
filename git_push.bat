@@ -1,27 +1,36 @@
 @echo off
+:: Use the full path that worked in your manual tests
 set GIT="C:\Program Files\Git\bin\git.exe"
 
-cd /d "C:\SQL_Monitoring\ddl_exports" || exit /b 1
+:: Force the script to run from the folder where the BAT is located
+cd /d "C:\Manikanta"
 
-:: Init repo if needed
+:: Verify we are in the right place (for logging purposes)
+echo Current Directory: %cd%
+
+:: If for some reason .git was deleted, re-init
 if not exist ".git" (
+    echo Initializing Git...
     %GIT% init
     %GIT% branch -M main
     %GIT% remote add origin https://ghp_FOaj4YARp6M7cvE6vH5aAWclODkk912k7GY@github.com/Manikantahs1993/SQLDDL.git
-) else (
-    %GIT% remote set-url origin https://ghp_FOaj4YARp6M7cvE6vH5aAWclODkk912k7GY@github.com/Manikantahs1993/SQLDDL.git
 )
 
-:: Stage files
+:: Stage changes
+echo Staging files...
 %GIT% add -A
 
-:: Check if anything changed and commit if yes
+:: Check if there is anything to commit
 %GIT% diff --cached --quiet
-if not %errorlevel%==0 (
-    %GIT% commit -m "DDL Backup %date% %time%"
+if %errorlevel% neq 0 (
+    echo Changes detected. Committing...
+    %GIT% commit -m "DDL Backup - %date% %time%"
+    
+    echo Pushing to GitHub...
     %GIT% push origin main
 ) else (
-    echo No changes to commit.
+    echo No changes detected in DDL files. Skipping push.
 )
 
+echo Done!
 exit /b 0
